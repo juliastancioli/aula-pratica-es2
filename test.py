@@ -6,7 +6,8 @@ from server import SeuServico
 from client import inserir_dado
 
 class SeuServicoTest(unittest.TestCase):
-    def setUp(self):
+
+    def test_inserir_dado(self):
         # Configuração inicial do servidor gRPC
         self.server = grpc.server(grpc.InsecureServer())
         self.seu_servico = SeuServico()
@@ -17,12 +18,7 @@ class SeuServicoTest(unittest.TestCase):
         # Configuração inicial do cliente gRPC
         channel = grpc.insecure_channel('localhost:50051')
         self.stub = seu_servico_pb2_grpc.SeuServicoStub(channel)
-
-    def tearDown(self):
-        # Encerramento do servidor gRPC
-        self.server.stop(0)
-
-    def test_inserir_dado(self):
+        
         # Executa o teste de inserção de dado
         chave = 1
         desc = "Descrição do dado"
@@ -43,7 +39,8 @@ class SeuServicoTest(unittest.TestCase):
         # Verifica se o status de retorno é 1 (troca do valor)
         self.assertEqual(status, 1)
         
-        
+        # Encerramento do servidor gRPC
+        self.server.stop(0)
 
 if __name__ == '__main__':
     unittest.main()

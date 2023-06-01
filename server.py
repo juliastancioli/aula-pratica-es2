@@ -22,7 +22,6 @@ class SeuServico(seu_servico_pb2_grpc.SeuServicoServicer):
             self.dicionario[chave] = {'desc': desc, 'valor': valor}
             return seu_servico_pb2.Resultado(status=0)
 
-
 server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 seu_servico_pb2_grpc.add_SeuServicoServicer_to_server(SeuServico(), server)
 server.add_insecure_port('[::]:50051')
