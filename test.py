@@ -1,46 +1,35 @@
 import unittest
-import grpc
-import seu_servico_pb2
-import seu_servico_pb2_grpc
-from server import SeuServico
-from client import inserir_dado
+from utils import Clientes
 
-class SeuServicoTest(unittest.TestCase):
+class TestClientes(unittest.TestCase):
+    def setUp(self):
+        self.conjunto_clientes = Clientes()
+        self.conjunto_clientes.create_client('João', '123456789', 30, 5000.00, 70.5)
+        self.conjunto_clientes.create_client('Maria', '987654321', 25, 4000.00, 60.2)
 
-    def test_inserir_dado(self):
-        # Configuração inicial do servidor gRPC
-        self.server = grpc.server(grpc.InsecureServer())
-        self.seu_servico = SeuServico()
-        seu_servico_pb2_grpc.add_SeuServicoServicer_to_server(self.seu_servico, self.server)
-        self.server.add_insecure_port('[::]:50051')
-        self.server.start()
+    def test_create_client(self):
+        self.assertEqual(len(self.conjunto_clientes.clientes), 2)
+        self.conjunto_clientes.create_client('Pedro', '555555555', 40, 6000.00, 80.0)
+        self.assertEqual(len(self.conjunto_clientes.clientes), 3)
+        self.assertIn('Pedro', self.conjunto_clientes.clientes)
 
-        # Configuração inicial do cliente gRPC
-        channel = grpc.insecure_channel('localhost:50051')
-        self.stub = seu_servico_pb2_grpc.SeuServicoStub(channel)
-        
-        # Executa o teste de inserção de dado
-        chave = 1
-        desc = "Descrição do dado"
-        valor = 3.14
+    def test_update_name(self):
+        self.conjunto_clientes.update_name('João', 'João Silva')
+        self.assertIn('João Silva', self.conjunto_clientes.clientes)
+        self.assertNotIn('João', self.conjunto_clientes.clientes)
 
-        status = inserir_dado(self.stub, chave, desc, valor)
+    def test_update_phone(self):
+        self.conjunto_clientes.update_phone('Maria', '999999999')
+        self.assertEqual(self.conjunto_clientes.clientes['Maria']['telefone'], '999999999')
 
-        # Verifica se o status de retorno é 0 (inserção bem-sucedida)
-        self.assertEqual(status, 0)
-        
-        # Executa o teste de inserção de dado
-        chave = 1
-        desc = "Descrição do dado"
-        valor = 18
+    def test_update_name_nonexistent_client(self):
+        self.conjunto_clientes.update_name('Pedro', 'Pedro Silva')
+        self.assertNotIn('Pedro Silva', self.conjunto_clientes.clientes)
+        self.assertNotIn('Pedro', self.conjunto_clientes.clientes)
 
-        status = inserir_dado(self.stub, chave, desc, valor)
-
-        # Verifica se o status de retorno é 1 (troca do valor)
-        self.assertEqual(status, 1)
-        
-        # Encerramento do servidor gRPC
-        self.server.stop(0)
+    def test_update_phone_nonexistent_client(self):
+        self.conjunto_clientes.update_phone('Carlos', '888888888')
+        self.assertNotIn('Carlos', self.conjunto_clientes.clientes)
 
 if __name__ == '__main__':
     unittest.main()
